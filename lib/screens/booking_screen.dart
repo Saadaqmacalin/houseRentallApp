@@ -52,66 +52,140 @@ class _BookingScreenState extends State<BookingScreen> {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final bookingProvider = Provider.of<BookingProvider>(context, listen: false);
 
-    final bookingId = await bookingProvider.createBooking(
+    final result = await bookingProvider.createBooking(
       widget.house.id,
       _startDate!,
       _endDate!,
       auth.user!.token,
     );
 
-    if (bookingId != null && mounted) {
+    if (result['success'] && mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => PaymentScreen(bookingId: bookingId, amount: widget.house.price),
+          builder: (context) => PaymentScreen(
+            bookingId: result['id'], 
+            amount: widget.house.price,
+            houseAddress: widget.house.address,
+          ),
         ),
       );
     } else if (mounted) {
-       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking failed')));
+       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message'])));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-      final bookingProvider = Provider.of<BookingProvider>(context);
+    final bookingProvider = Provider.of<BookingProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Book House')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Book Your Home'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(24.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Select Booking Dates for ${widget.house.address}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
-            ListTile(
-              title: Text(_startDate == null ? 'Select Start Date' : 'Start: ${DateFormat('yyyy-MM-dd').format(_startDate!)}'),
-              trailing: const Icon(Icons.calendar_today),
+            const Text(
+              'Select Dates',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: -1),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Choose your stay period for ${widget.house.address}',
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+            ),
+            const SizedBox(height: 32),
+            _buildDateTile(
+              context,
+              title: 'Start Date',
+              date: _startDate,
+              icon: Icons.calendar_today_outlined,
               onTap: () => _selectDate(context, true),
-              tileColor: Colors.grey.shade100,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            const SizedBox(height: 16),
-            ListTile(
-              title: Text(_endDate == null ? 'Select End Date' : 'End: ${DateFormat('yyyy-MM-dd').format(_endDate!)}'),
-              trailing: const Icon(Icons.calendar_today),
+            const SizedBox(height: 20),
+            _buildDateTile(
+              context,
+              title: 'End Date',
+              date: _endDate,
+              icon: Icons.event_available_outlined,
               onTap: () => _selectDate(context, false),
-              tileColor: Colors.grey.shade100,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-             const Spacer(),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.deepPurple.shade50,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, color: Colors.deepPurple),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      'Price is calculated monthly. Total will be shown at payment.',
+                      style: TextStyle(color: Colors.deepPurple, fontSize: 12, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: bookingProvider.isLoading ? null : _submit,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
+                  backgroundColor: Colors.deepPurple,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  elevation: 0,
                 ),
                 child: bookingProvider.isLoading 
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Confirm Booking', style: TextStyle(fontSize: 18)),
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Text('Confirm Booking', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateTile(BuildContext context, {required String title, required DateTime? date, required IconData icon, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: Colors.grey.shade100),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.deepPurple),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                Text(
+                  date == null ? 'Not Selected' : DateFormat('MMMM dd, yyyy').format(date),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const Spacer(),
+            Icon(Icons.edit_outlined, size: 20, color: Colors.grey.shade400),
           ],
         ),
       ),

@@ -7,8 +7,14 @@ import 'main_screen.dart';
 class PaymentScreen extends StatelessWidget {
   final String bookingId;
   final double amount;
+  final String houseAddress;
 
-  const PaymentScreen({super.key, required this.bookingId, required this.amount});
+  const PaymentScreen({
+    super.key, 
+    required this.bookingId, 
+    required this.amount,
+    required this.houseAddress,
+  });
 
   void _processPayment(BuildContext context, String method) async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
@@ -51,50 +57,128 @@ class PaymentScreen extends StatelessWidget {
     final paymentProvider = Provider.of<PaymentProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Payment')),
-      body: Padding(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Checkout'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Center(child: Icon(Icons.payment, size: 80, color: Colors.blue)),
-            const SizedBox(height: 16),
-            Text('Amount to Pay', style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
-            Text('\$${amount.toStringAsFixed(2)}', style: Theme.of(context).textTheme.displayMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.green), textAlign: TextAlign.center),
-             const SizedBox(height: 48),
-            Text('Select Payment Method', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 16),
-            
-            _buildMethod(context, 'Credit Card', Icons.credit_card, 'card', paymentProvider.isLoading, () => _processPayment(context, 'card')),
-            const SizedBox(height: 16),
-            _buildMethod(context, 'Cash', Icons.money, 'cash', paymentProvider.isLoading, () => _processPayment(context, 'cash')),
-            const SizedBox(height: 16),
-            _buildMethod(context, 'Bank Transfer', Icons.account_balance, 'transfer', paymentProvider.isLoading, () => _processPayment(context, 'transfer')),
+            const Text(
+              'Payment Details',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: -1),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              houseAddress,
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+            ),
+            const SizedBox(height: 32),
+            Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Colors.deepPurple, Color(0xFF673AB7)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.deepPurple.withOpacity(0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  const Text('Total Amount', style: TextStyle(color: Colors.white70, fontSize: 16)),
+                  const SizedBox(height: 8),
+                  Text(
+                    '\$${amount.toStringAsFixed(2)}',
+                    style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Text(
+                      'SECURE PAYMENT',
+                      style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 48),
+            const Text(
+              'Select Payment Method',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            _buildMethod(
+              context,
+              'Credit / Debit Card',
+              Icons.credit_card_outlined,
+              paymentProvider.isLoading,
+              () => _processPayment(context, 'card'),
+            ),
+            _buildMethod(
+              context,
+              'Cash Payment',
+              Icons.account_balance_wallet_outlined,
+              paymentProvider.isLoading,
+              () => _processPayment(context, 'cash'),
+            ),
+            _buildMethod(
+              context,
+              'Bank Transfer',
+              Icons.account_balance_outlined,
+              paymentProvider.isLoading,
+              () => _processPayment(context, 'transfer'),
+            ),
+            if (paymentProvider.isLoading)
+              const Padding(
+                padding: EdgeInsets.only(top: 20),
+                child: Center(child: CircularProgressIndicator(color: Colors.deepPurple)),
+              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildMethod(BuildContext context, String title, IconData icon, String methodKey, bool isLoading, VoidCallback onTap) {
-      return InkWell(
-          onTap: isLoading ? null : onTap,
-          child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                  children: [
-                      Icon(icon, color: Colors.blue),
-                      const SizedBox(width: 16),
-                      Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                      const Spacer(),
-                      const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-                  ],
-              ),
+  Widget _buildMethod(BuildContext context, String title, IconData icon, bool isLoading, VoidCallback onTap) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: ListTile(
+        onTap: isLoading ? null : onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
           ),
-      );
+          child: Icon(icon, color: Colors.deepPurple),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+      ),
+    );
   }
 }

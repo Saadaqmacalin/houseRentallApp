@@ -10,8 +10,8 @@ class User {
     required this.name,
     required this.email,
     required this.token,
-    this.favorites = const [],
-  });
+    List<String>? favorites,
+  }) : favorites = favorites ?? [];
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(

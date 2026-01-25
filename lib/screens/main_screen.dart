@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'home/home_screen.dart';
-import 'home/home_screen.dart';
 import 'profile_screen.dart';
 import 'favorites_screen.dart';
 
@@ -14,11 +13,18 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const FavoritesScreen(),
-    const ProfileScreen(),
-  ];
+  Widget _getScreen() {
+    switch (_selectedIndex) {
+      case 0:
+        return HomeScreen();
+      case 1:
+        return FavoritesScreen();
+      case 2:
+        return ProfileScreen();
+      default:
+        return HomeScreen();
+    }
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -29,7 +35,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_selectedIndex],
+      body: _getScreen(),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(

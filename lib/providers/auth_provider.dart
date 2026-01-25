@@ -94,8 +94,9 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> toggleFavorite(String houseId) async {
-    final oldFavorites = _user!.favorites; // Optimistic update
+    final oldFavorites = List<String>.from(_user!.favorites);
     try {
+      // 1. Optimistic Update UI
       if (_user!.favorites.contains(houseId)) {
         _user!.favorites.remove(houseId);
       } else {
@@ -103,23 +104,43 @@ class AuthProvider with ChangeNotifier {
       }
       notifyListeners();
 
+      // 2. Call API
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}/customers/favorites/$houseId'),
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ${_user!.token}', // Need token if using auth middleware
+            'Authorization': 'Bearer ${_user!.token}',
         },
       );
 
+      print('Toggle Favorite API Status: ${response.statusCode}');
+
       if (response.statusCode >= 400) {
+        // Rollback on failure
         _user!.favorites = oldFavorites;
         notifyListeners();
-        print('Could not toggle favorite.');
+        print('Toggle Favorite Failed: ${response.body}');
+      } else {
+        // Success: Update with absolute truth from server
+        final List<dynamic> serverFavorites = jsonDecode(response.body);
+        _user!.favorites = serverFavorites.map((e) => e.toString()).toList();
+        
+        // Persist the confirmed truth to local storage
+        final prefs = await SharedPreferences.getInstance();
+        if (prefs.containsKey('userData')) {
+          final Map<String, dynamic> userData = jsonDecode(prefs.getString('userData')!);
+          userData['favorites'] = _user!.favorites;
+          prefs.setString('userData', jsonEncode(userData));
+        }
+        
+        notifyListeners();
+        print('Favorite sync successful');
       }
     } catch (e) {
+      // Rollback on catch
       _user!.favorites = oldFavorites;
       notifyListeners();
-      print(e);
+      print('Toggle Favorite Exception: $e');
     }
   }
 }

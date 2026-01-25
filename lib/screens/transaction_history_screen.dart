@@ -46,16 +46,31 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             separatorBuilder: (ctx, i) => const Divider(),
             itemBuilder: (context, index) {
               final payment = payments[index];
-              final date = DateTime.parse(payment['paymentDate']);
+              final rawDate = payment['paymentDate'];
+              final date = rawDate != null ? DateTime.parse(rawDate) : DateTime.now();
+              
+              final booking = payment['booking'];
+              final houseAddress = (booking != null && booking['house'] != null) 
+                  ? booking['house']['address'] 
+                  : 'Property details unavailable';
               
               return ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: Colors.green.shade100,
-                  foregroundColor: Colors.green.shade800,
-                  child: const Icon(Icons.attach_money),
+                  backgroundColor: Colors.deepPurple.shade50,
+                  foregroundColor: Colors.deepPurple,
+                  child: const Icon(Icons.receipt_long),
                 ),
-                title: Text('\$${payment['amount']}'),
-                subtitle: Text(DateFormat('yyyy-MM-dd – kk:mm').format(date)),
+                title: Text(houseAddress, style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('\$${payment['amount']} - ${payment['paymentMethod']}'),
+                    Text(
+                      DateFormat('MMM dd, yyyy • hh:mm a').format(date),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
                 trailing: Chip(
                   label: Text(payment['paymentStatus'].toString().toUpperCase()),
                   backgroundColor: payment['paymentStatus'] == 'paid' ? Colors.green.shade100 : Colors.red.shade100,

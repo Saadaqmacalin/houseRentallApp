@@ -7,6 +7,7 @@ class House {
   final String description;
   final String status;
   final String ownerName;
+  final String imageUrl;
 
   House({
     required this.id,
@@ -17,6 +18,7 @@ class House {
     required this.description,
     required this.status,
     required this.ownerName,
+    required this.imageUrl,
   });
 
   factory House.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class House {
       description: json['description'] ?? '',
       status: json['status'],
       ownerName: json['owner'] is Map ? json['owner']['name'] : 'Unknown',
+      imageUrl: json['imageUrl'] ?? 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
     );
   }
 }

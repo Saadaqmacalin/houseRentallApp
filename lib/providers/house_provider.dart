@@ -11,12 +11,25 @@ class HouseProvider with ChangeNotifier {
   List<House> get houses => [..._houses];
   bool get isLoading => _isLoading;
 
-  Future<void> fetchHouses() async {
+  Future<void> fetchHouses({
+    String? address,
+    double? minPrice,
+    double? maxPrice,
+    String? houseType,
+  }) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/houses?status=available'));
+      String query = 'status=available';
+      if (address != null && address.isNotEmpty) query += '&address=${Uri.encodeComponent(address)}';
+      if (minPrice != null) query += '&minPrice=$minPrice';
+      if (maxPrice != null) query += '&maxPrice=$maxPrice';
+      if (houseType != null && houseType != 'All') query += '&houseType=$houseType';
+
+      final url = '${ApiConstants.baseUrl}/houses?$query';
+      print('Fetching houses from: $url');
+      final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         _houses = data.map((json) => House.fromJson(json)).toList();
@@ -38,13 +51,21 @@ class HouseProvider with ChangeNotifier {
         },
       );
       
+      print('Fetch Favorites Response: ${response.statusCode}');
+
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => House.fromJson(json)).toList();
+        // Safety filter: ensure json is not null and is a map
+        return data
+          .where((json) => json != null && json is Map<String, dynamic>)
+          .map((json) => House.fromJson(json))
+          .toList();
+      } else {
+        print('Fetch Favorites Failed: ${response.body}');
       }
       return [];
     } catch (e) {
-      print(e);
+      print('Fetch Favorites Error: $e');
       return [];
     }
   }

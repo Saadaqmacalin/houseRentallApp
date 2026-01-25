@@ -8,7 +8,7 @@ class BookingProvider with ChangeNotifier {
 
   bool get isLoading => _isLoading;
 
-  Future<String?> createBooking(String houseId, DateTime startDate, DateTime endDate, String token) async {
+  Future<Map<String, dynamic>> createBooking(String houseId, DateTime startDate, DateTime endDate, String token) async {
     _isLoading = true;
     notifyListeners();
 
@@ -26,15 +26,18 @@ class BookingProvider with ChangeNotifier {
         }),
       );
 
+      print('Booking API Status: ${response.statusCode}');
+      final data = jsonDecode(response.body);
+
       if (response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-        return data['_id']; // Return booking ID for payment
+        return {'success': true, 'id': data['_id']};
       } else {
-        return null;
+        print('Booking API Failed: ${response.body}');
+        return {'success': false, 'message': data['message'] ?? 'Booking failed'};
       }
     } catch (e) {
-      print(e);
-      return null;
+      print('Booking Exception: $e');
+      return {'success': false, 'message': 'Connection error'};
     } finally {
       _isLoading = false;
       notifyListeners();

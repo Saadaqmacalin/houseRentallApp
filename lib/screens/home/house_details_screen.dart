@@ -12,58 +12,96 @@ class HouseDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(house.address),
-        actions: [
-          Consumer<AuthProvider>(
-            builder: (context, auth, _) {
-              final isFavorite = auth.user?.favorites.contains(house.id) ?? false;
-              return IconButton(
-                icon: Icon(
-                  isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: isFavorite ? Colors.red : null,
-                ),
-                onPressed: () {
-                  auth.toggleFavorite(house.id);
-                },
-              );
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              height: 250,
-              color: Colors.grey.shade300,
-              child: const Icon(Icons.home, size: 100, color: Colors.grey),
+      backgroundColor: Colors.white,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 350,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.network(
+                    house.imageUrl,
+                    fit: BoxFit.cover,
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.3),
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.5),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
+            leading: IconButton(
+              icon: const CircleAvatar(
+                backgroundColor: Colors.white,
+                child: Icon(Icons.arrow_back, color: Colors.black),
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
+            actions: [
+              Consumer<AuthProvider>(
+                builder: (context, auth, _) {
+                  final isFavorite = auth.user?.favorites.contains(house.id) ?? false;
+                  return IconButton(
+                    icon: CircleAvatar(
+                      backgroundColor: Colors.white,
+                      child: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : Colors.black,
+                      ),
+                    ),
+                    onPressed: () => auth.toggleFavorite(house.id),
+                  );
+                },
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
+          SliverToBoxAdapter(
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        '\$${house.price}/month',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Theme.of(context).primaryColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Colors.green.shade100,
-                          borderRadius: BorderRadius.circular(20),
+                          color: Colors.deepPurple.shade50,
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
-                          house.status.toUpperCase(),
-                          style: TextStyle(color: Colors.green.shade800, fontWeight: FontWeight.bold),
+                          house.houseType.toUpperCase(),
+                          style: TextStyle(
+                            color: Colors.deepPurple.shade700,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        '\$${house.price}/mo',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepPurple,
                         ),
                       ),
                     ],
@@ -71,33 +109,48 @@ class HouseDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Icon(Icons.bed, color: Colors.grey.shade600),
-                      const SizedBox(width: 8),
-                      Text('${house.numberOfRooms} Rooms'),
-                      const SizedBox(width: 24),
-                      Icon(Icons.home_work, color: Colors.grey.shade600),
-                      const SizedBox(width: 8),
-                      Text(house.houseType),
+                      const Icon(Icons.location_on_outlined, size: 20, color: Colors.deepPurple),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          house.address,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
-                  Text(
-                    'Description',
-                    style: Theme.of(context).textTheme.titleLarge,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildInfoItem(Icons.king_bed_outlined, '${house.numberOfRooms} BR'),
+                      _buildInfoItem(Icons.square_foot_outlined, '1200 ft²'), // Placeholder
+                      _buildInfoItem(Icons.bathtub_outlined, '2 BA'), // Placeholder
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    house.description.isNotEmpty ? house.description : 'No description provided.',
-                    style: TextStyle(color: Colors.grey.shade700, height: 1.5),
+                  const SizedBox(height: 32),
+                  const Text(
+                    'About Property',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
+                  const SizedBox(height: 12),
+                  Text(
+                    house.description.isNotEmpty ? house.description : 'Explore this beautiful house situated in a prime location. It features modern amenities and a spacious layout suitable for your lifestyle.',
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 15, height: 1.6),
+                  ),
+                  const SizedBox(height: 100), // Spacing for bottom bar
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
+      bottomSheet: Container(
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: [
@@ -108,23 +161,48 @@ class HouseDetailsScreen extends StatelessWidget {
             ),
           ],
         ),
-        child: ElevatedButton(
-          onPressed: () {
-             Navigator.of(context).push(
-               MaterialPageRoute(
-                 builder: (context) => BookingScreen(house: house),
-               ),
-             );
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).primaryColor,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          child: const Text('Book Now', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        child: Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => BookingScreen(house: house),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  elevation: 0,
+                ),
+                child: const Text('Book This Property', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildInfoItem(IconData icon, String text) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: Colors.grey.shade100),
+          ),
+          child: Icon(icon, color: Colors.deepPurple, size: 24),
+        ),
+        const SizedBox(height: 8),
+        Text(text, style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w500)),
+      ],
     );
   }
 }
