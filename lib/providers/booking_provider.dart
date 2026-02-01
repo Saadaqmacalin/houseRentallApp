@@ -43,4 +43,33 @@ class BookingProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+  Future<bool> endBooking(String bookingId, String token) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await http.put(
+        Uri.parse('${ApiConstants.baseUrl}/bookings/$bookingId/end'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        final errorData = json.decode(response.body);
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (error) {
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 }

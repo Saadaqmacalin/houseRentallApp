@@ -84,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 15),
             DropdownButtonFormField<String>(
-              value: _selectedType,
+              initialValue: _selectedType,
               decoration: const InputDecoration(labelText: 'House Type'),
               items: <Map<String, String>>[
                 {'display': 'All Types', 'value': 'All'},
