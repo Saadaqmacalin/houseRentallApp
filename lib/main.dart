@@ -5,6 +5,7 @@ import 'providers/house_provider.dart';
 import 'providers/booking_provider.dart';
 import 'providers/payment_provider.dart';
 import 'screens/auth_wrapper.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -36,7 +37,7 @@ class MyApp extends StatelessWidget {
                 fillColor: Colors.grey.shade50,
               ),
             ),
-            home: const AuthWrapper(),
+            home: const SplashScreen(),
           );
         },
       ),

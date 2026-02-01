@@ -8,7 +8,7 @@ class BookingProvider with ChangeNotifier {
 
   bool get isLoading => _isLoading;
 
-  Future<Map<String, dynamic>> createBooking(String houseId, DateTime startDate, DateTime endDate, String token) async {
+  Future<Map<String, dynamic>> createBooking(String houseId, DateTime startDate, String token) async {
     _isLoading = true;
     notifyListeners();
 
@@ -22,7 +22,6 @@ class BookingProvider with ChangeNotifier {
         body: jsonEncode({
           'houseId': houseId,
           'startDate': startDate.toIso8601String(),
-          'endDate': endDate.toIso8601String(),
         }),
       );
 

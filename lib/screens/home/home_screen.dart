@@ -144,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             onPressed: _showFilterBottomSheet,
-            icon: const Icon(Icons.filter_list),
+            icon: const Icon(Icons.tune_rounded),
           ),
         ],
       ),

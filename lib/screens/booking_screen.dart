@@ -17,10 +17,9 @@ class BookingScreen extends StatefulWidget {
 
 class _BookingScreenState extends State<BookingScreen> {
   DateTime? _startDate;
-  DateTime? _endDate;
   final _formKey = GlobalKey<FormState>();
 
-  Future<void> _selectDate(BuildContext context, bool isStart) async {
+  Future<void> _selectDate(BuildContext context) async {
     final picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -29,23 +28,14 @@ class _BookingScreenState extends State<BookingScreen> {
     );
     if (picked != null) {
       setState(() {
-        if (isStart) {
-          _startDate = picked;
-        } else {
-          _endDate = picked;
-        }
+        _startDate = picked;
       });
     }
   }
 
   void _submit() async {
-    if (_startDate == null || _endDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select both dates')));
-      return;
-    }
-
-    if (_endDate!.isBefore(_startDate!)) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('End date must be after start date')));
+    if (_startDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a start date')));
       return;
     }
 
@@ -55,7 +45,6 @@ class _BookingScreenState extends State<BookingScreen> {
     final result = await bookingProvider.createBooking(
       widget.house.id,
       _startDate!,
-      _endDate!,
       auth.user!.token,
     );
 
@@ -92,12 +81,12 @@ class _BookingScreenState extends State<BookingScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Select Dates',
+              'Select Start Date',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: -1),
             ),
             const SizedBox(height: 8),
             Text(
-              'Choose your stay period for ${widget.house.address}',
+              'Choose when you want to start living in ${widget.house.address}',
               style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
             ),
             const SizedBox(height: 32),
@@ -106,15 +95,7 @@ class _BookingScreenState extends State<BookingScreen> {
               title: 'Start Date',
               date: _startDate,
               icon: Icons.calendar_today_outlined,
-              onTap: () => _selectDate(context, true),
-            ),
-            const SizedBox(height: 20),
-            _buildDateTile(
-              context,
-              title: 'End Date',
-              date: _endDate,
-              icon: Icons.event_available_outlined,
-              onTap: () => _selectDate(context, false),
+              onTap: () => _selectDate(context),
             ),
             const Spacer(),
             Container(
@@ -129,7 +110,7 @@ class _BookingScreenState extends State<BookingScreen> {
                   const SizedBox(width: 12),
                   const Expanded(
                     child: Text(
-                      'Price is calculated monthly. Total will be shown at payment.',
+                      'Renting period starts from your selected date. You can stop renting at any time from your transaction history.',
                       style: TextStyle(color: Colors.deepPurple, fontSize: 12, fontWeight: FontWeight.w500),
                     ),
                   ),
