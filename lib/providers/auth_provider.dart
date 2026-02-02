@@ -119,22 +119,27 @@ class AuthProvider with ChangeNotifier {
         // Rollback on failure
         _user!.favorites = oldFavorites;
         notifyListeners();
-        print('Toggle Favorite Failed: ${response.body}');
+        print('Toggle Favorite FAILED. Status: ${response.statusCode}');
+        print('Error Body: ${response.body}');
       } else {
-        // Success: Update with absolute truth from server
+        // Success: Update state with data from server
         final List<dynamic> serverFavorites = jsonDecode(response.body);
-        _user!.favorites = serverFavorites.map((e) => e.toString()).toList();
+        final newFavorites = serverFavorites.map((e) => e.toString()).toList();
         
-        // Persist the confirmed truth to local storage
+        // Critical: Update the user object with the new list reference
+        _user!.favorites = newFavorites;
+        
+        // Persist to local storage
         final prefs = await SharedPreferences.getInstance();
         if (prefs.containsKey('userData')) {
           final Map<String, dynamic> userData = jsonDecode(prefs.getString('userData')!);
-          userData['favorites'] = _user!.favorites;
+          userData['favorites'] = newFavorites;
           prefs.setString('userData', jsonEncode(userData));
         }
         
+        // Final notification to ensure UI is in sync
         notifyListeners();
-        print('Favorite sync successful');
+        print('Favorite sync successful. Final count: ${newFavorites.length}');
       }
     } catch (e) {
       // Rollback on catch
