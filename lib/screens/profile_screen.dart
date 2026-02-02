@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'auth/login_screen.dart';
 import 'transaction_history_screen.dart';
+import 'account_manage_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -93,7 +94,11 @@ class ProfileScreen extends StatelessWidget {
                     context,
                     icon: Icons.person_outline,
                     title: 'Personal Info',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => const AccountManageScreen()),
+                      );
+                    },
                   ),
                   _buildProfileMenu(
                     context,

@@ -148,4 +148,59 @@ class AuthProvider with ChangeNotifier {
       print('Toggle Favorite Exception: $e');
     }
   }
+  Future<bool> updateProfile({String? name, String? email, String? password}) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final Map<String, dynamic> updateData = {};
+      if (name != null) updateData['name'] = name;
+      if (email != null) updateData['email'] = email;
+      if (password != null) updateData['password'] = password;
+
+      final response = await http.put(
+        Uri.parse('${ApiConstants.baseUrl}/customers/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${_user!.token}',
+        },
+        body: jsonEncode(updateData),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        // Important: Server might not return token on profile update, so keep current token
+        final String currentToken = _user!.token;
+        _user = User.fromJson(data);
+        
+        // Ensure token is preserved if it wasn't in the response
+        if (_user!.token.isEmpty) {
+          _user = User(
+            id: _user!.id,
+            name: _user!.name,
+            email: _user!.email,
+            token: currentToken,
+            favorites: _user!.favorites,
+          );
+        }
+
+        final prefs = await SharedPreferences.getInstance();
+        final Map<String, dynamic> fullData = _user!.toJson();
+        fullData['token'] = _user!.token; // Ensure token is persisted
+        prefs.setString('userData', jsonEncode(fullData));
+        
+        notifyListeners();
+        return true;
+      } else {
+        print('Update profile failed with status: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('Update profile exception: $e');
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

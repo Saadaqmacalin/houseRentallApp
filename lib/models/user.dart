@@ -22,4 +22,14 @@ class User {
       favorites: (json['favorites'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'name': name,
+      'email': email,
+      'token': token,
+      'favorites': favorites,
+    };
+  }
 }
