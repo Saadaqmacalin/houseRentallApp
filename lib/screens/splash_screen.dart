@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/owner_auth_provider.dart';
+import 'role_selection_screen.dart';
+import 'owner/owner_main_screen.dart';
 import 'auth_wrapper.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -29,11 +34,31 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   void _navigateToNext() async {
-    await Future.delayed(const Duration(seconds: 3));
+    // Start auto-login checks in parallel
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final ownerAuth = Provider.of<OwnerAuthProvider>(context, listen: false);
+    
+    await Future.wait([
+      auth.tryAutoLogin(),
+      ownerAuth.tryAutoLogin(),
+    ]);
+
+    await Future.delayed(const Duration(seconds: 2));
+    
     if (mounted) {
+      Widget nextScreen;
+      
+      if (ownerAuth.isAuthenticated) {
+        nextScreen = const OwnerMainScreen();
+      } else if (auth.isAuthenticated) {
+        nextScreen = const AuthWrapper();
+      } else {
+        nextScreen = const RoleSelectionScreen();
+      }
+
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const AuthWrapper(),
+          pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },

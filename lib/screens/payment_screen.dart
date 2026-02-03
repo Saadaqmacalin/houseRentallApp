@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/payment_provider.dart';
 import '../providers/auth_provider.dart';
+import '../utils/constants.dart';
 import 'main_screen.dart';
 
 class PaymentScreen extends StatelessWidget {
@@ -57,48 +58,42 @@ class PaymentScreen extends StatelessWidget {
     final paymentProvider = Provider.of<PaymentProvider>(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Checkout'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: Text('Checkout', style: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_rounded, color: AppColors.textDark),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
+            Text(
               'Payment Details',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: -1),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: -1, color: AppColors.textDark),
             ),
             const SizedBox(height: 8),
             Text(
               houseAddress,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+              style: TextStyle(color: AppColors.textLight, fontSize: 16),
             ),
             const SizedBox(height: 32),
             Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Colors.deepPurple, Color(0xFF673AB7)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                gradient: AppGradients.main,
                 borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.deepPurple.withOpacity(0.3),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
+                boxShadow: [AppShadows.deep],
               ),
               child: Column(
                 children: [
-                  const Text('Total Amount', style: TextStyle(color: Colors.white70, fontSize: 16)),
+                  Text('Total Amount', style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 16)),
                   const SizedBox(height: 8),
                   Text(
                     '\$${amount.toStringAsFixed(2)}',
@@ -120,9 +115,9 @@ class PaymentScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 48),
-            const Text(
+            Text(
               'Select Payment Method',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark),
             ),
             const SizedBox(height: 20),
             _buildMethod(
@@ -147,9 +142,9 @@ class PaymentScreen extends StatelessWidget {
               () => _processPayment(context, 'transfer'),
             ),
             if (paymentProvider.isLoading)
-              const Padding(
-                padding: EdgeInsets.only(top: 20),
-                child: Center(child: CircularProgressIndicator(color: Colors.deepPurple)),
+              Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
               ),
           ],
         ),
@@ -161,9 +156,10 @@ class PaymentScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey.shade100),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [AppShadows.soft],
+        border: Border.all(color: AppColors.background),
       ),
       child: ListTile(
         onTap: isLoading ? null : onTap,
@@ -171,13 +167,13 @@ class PaymentScreen extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
+            color: AppColors.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: Colors.deepPurple),
+          child: Icon(icon, color: AppColors.primary),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+        title: Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark)),
+        trailing: Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textLight),
       ),
     );
   }

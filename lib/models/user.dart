@@ -3,6 +3,9 @@ class User {
   final String name;
   final String email;
   final String token;
+  final String? phoneNumber;
+  final String? address;
+  final String? nationalID;
   List<String> favorites;
 
   User({
@@ -10,6 +13,9 @@ class User {
     required this.name,
     required this.email,
     required this.token,
+    this.phoneNumber,
+    this.address,
+    this.nationalID,
     List<String>? favorites,
   }) : favorites = favorites ?? [];
 
@@ -18,7 +24,10 @@ class User {
       id: json['_id'],
       name: json['name'],
       email: json['email'],
-      token: json['token'] ?? '', // Handle case where token might be mostly in login/register response but maybe not in profile update
+      token: json['token'] ?? '',
+      phoneNumber: json['phoneNumber'],
+      address: json['address'],
+      nationalID: json['nationalID'],
       favorites: (json['favorites'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
     );
   }
@@ -29,6 +38,9 @@ class User {
       'name': name,
       'email': email,
       'token': token,
+      'phoneNumber': phoneNumber,
+      'address': address,
+      'nationalID': nationalID,
       'favorites': favorites,
     };
   }

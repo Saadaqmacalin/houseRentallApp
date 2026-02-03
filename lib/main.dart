@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/owner_auth_provider.dart';
 import 'providers/house_provider.dart';
 import 'providers/booking_provider.dart';
 import 'providers/payment_provider.dart';
-import 'screens/auth_wrapper.dart';
 import 'screens/splash_screen.dart';
 
 void main() {
@@ -19,6 +19,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => OwnerAuthProvider()),
         ChangeNotifierProvider(create: (_) => HouseProvider()),
         ChangeNotifierProvider(create: (_) => BookingProvider()),
         ChangeNotifierProvider(create: (_) => PaymentProvider()),
