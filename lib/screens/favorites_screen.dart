@@ -14,21 +14,29 @@ class FavoritesScreen extends StatefulWidget {
 }
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
-  late Future<List<House>> _favoritesFuture;
+  Future<List<House>>? _favoritesFuture;
+  List<String>? _lastFavoriteIds;
 
   @override
   void initState() {
     super.initState();
-    _loadFavorites();
+    // Initially loaded in didChangeDependencies or build
   }
 
-  void _loadFavorites() {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    _favoritesFuture = Provider.of<HouseProvider>(context, listen: false).fetchFavorites(auth.user!.token);
+  void _loadFavorites(String token, List<String> favoriteIds) {
+    _lastFavoriteIds = List<String>.from(favoriteIds);
+    _favoritesFuture = Provider.of<HouseProvider>(context, listen: false).fetchFavorites(token);
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = Provider.of<AuthProvider>(context);
+    final currentFavorites = auth.user?.favorites ?? [];
+
+    // Trigger reload if favorites list changed or not yet loaded
+    if (_favoritesFuture == null || !_isSameList(_lastFavoriteIds, currentFavorites)) {
+      _loadFavorites(auth.user!.token, currentFavorites);
+    }
     return Column(
       children: [
         AppBar(
@@ -41,18 +49,18 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           child: RefreshIndicator(
             onRefresh: () async {
               setState(() {
-                _loadFavorites();
+                _loadFavorites(auth.user!.token, currentFavorites);
               });
               await _favoritesFuture;
             },
             child: FutureBuilder<List<House>>(
               future: _favoritesFuture,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
+                if (snapshot.connectionState == ConnectionState.waiting && (_favoritesFuture != null)) {
                   return const Center(child: CircularProgressIndicator(color: AppColors.primary));
                 }
                 if (snapshot.hasError) {
-                  return _buildErrorState();
+                  return _buildErrorState(auth.user!.token, currentFavorites);
                 }
                 final houses = snapshot.data ?? [];
                 
@@ -75,8 +83,18 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
+  bool _isSameList(List<String>? a, List<String> b) {
+    if (a == null) return false;
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+        if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
   Widget _buildEmptyState() {
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(), // Important for RefreshIndicator
       children: [
         SizedBox(height: MediaQuery.of(context).size.height * 0.2),
         Center(
@@ -109,7 +127,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  Widget _buildErrorState() {
+  Widget _buildErrorState(String token, List<String> favoriteIds) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -118,7 +136,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           const SizedBox(height: 16),
           const Text('Error loading favorites', style: TextStyle(color: AppColors.textLight)),
           TextButton(
-            onPressed: () => setState(() => _loadFavorites()),
+            onPressed: () => setState(() => _loadFavorites(token, favoriteIds)),
             child: const Text('Try Again', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
           ),
         ],

@@ -27,12 +27,13 @@ class HouseProvider with ChangeNotifier {
       if (maxPrice != null) query += '&maxPrice=$maxPrice';
       if (houseType != null && houseType != 'All') query += '&houseType=$houseType';
 
-      final url = '${ApiConstants.baseUrl}/houses?$query';
+      final url = '${ApiConstants.baseUrl}/houses?$query&limit=50';
       print('Fetching houses from: $url');
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        _houses = data.map((json) => House.fromJson(json)).toList();
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final List<dynamic> housesList = responseData['houses'];
+        _houses = housesList.map((json) => House.fromJson(json)).toList();
       }
     } catch (e) {
       print(e);

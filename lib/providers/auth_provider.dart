@@ -39,7 +39,7 @@ class AuthProvider with ChangeNotifier {
       return false;
     } finally {
       _isLoading = false;
-      notifyListeners();
+      notifyListeners(); 
     }
   }
 
@@ -148,6 +148,7 @@ class AuthProvider with ChangeNotifier {
       print('Toggle Favorite Exception: $e');
     }
   }
+  
   Future<bool> updateProfile({String? name, String? email, String? password}) async {
     _isLoading = true;
     notifyListeners();
@@ -203,4 +204,5 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
 }

@@ -33,16 +33,17 @@ class OwnerHousesScreenState extends State<OwnerHousesScreen> {
     }
     try {
       final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/landlords/houses'),
+        Uri.parse('${ApiConstants.baseUrl}/landlords/houses?limit=100'),
         headers: {
           'Authorization': 'Bearer ${auth.owner!.token}',
         },
       );
 
       if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
         if (mounted) {
           setState(() {
-            _houses = jsonDecode(response.body);
+            _houses = data['houses'] ?? [];
           });
         }
       } else {

@@ -35,8 +35,10 @@ class _TenantManagementScreenState extends State<TenantManagementScreen> {
       );
 
       if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        print('Tenants Data: $data');
         setState(() {
-          _tenants = jsonDecode(response.body);
+          _tenants = data;
         });
       } else {
         if (mounted) {
