@@ -241,6 +241,10 @@ class HouseCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
                   child: Image.network(
+                    house.imageUrl,
+                    height: 220,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) return child;
                       return Container(
