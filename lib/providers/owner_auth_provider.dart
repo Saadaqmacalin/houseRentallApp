@@ -5,14 +5,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../utils/constants.dart';
 
+// Fasalkaani wuxuu maamulaa xaqiijinta mulkiilayaasha guryaha (Landlord Authentication)
 class OwnerAuthProvider with ChangeNotifier {
-  User? _owner;
+  User? _owner; // Xogta mulkiilaha hadda soo galay
   bool _isLoading = false;
 
   User? get owner => _owner;
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _owner != null;
 
+  // Shaqadan waxay mulkiilaha ka caawisaa inuu galo app-ka (Login)
   Future<bool> login(String email, String password) async {
     _isLoading = true;
     notifyListeners();
@@ -22,9 +24,7 @@ class OwnerAuthProvider with ChangeNotifier {
         Uri.parse('${ApiConstants.baseUrl}/auth/landlord/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'password': password}),
-      );
-
-      print('Owner Login Status: ${response.statusCode}');
+      ).timeout(const Duration(seconds: 45));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -37,7 +37,6 @@ class OwnerAuthProvider with ChangeNotifier {
         return false;
       }
     } catch (e) {
-      print('Owner Login Error: $e');
       return false;
     } finally {
       _isLoading = false;
@@ -45,6 +44,7 @@ class OwnerAuthProvider with ChangeNotifier {
     }
   }
 
+  // Shaqadan waxay diiwaangelisaa mulkiile cusub (Owner Registration)
   Future<bool> register({
     required String name,
     required String email,
@@ -68,9 +68,7 @@ class OwnerAuthProvider with ChangeNotifier {
           'nationalID': nationalID,
           'address': address,
         }),
-      );
-
-      print('Owner Register Status: ${response.statusCode}');
+      ).timeout(const Duration(seconds: 45));
 
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
@@ -80,11 +78,9 @@ class OwnerAuthProvider with ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        print('Owner Register Failed: ${response.body}');
         return false;
       }
     } catch (e) {
-      print('Owner Register Exception: $e');
       return false;
     } finally {
       _isLoading = false;
@@ -92,6 +88,7 @@ class OwnerAuthProvider with ChangeNotifier {
     }
   }
 
+  // Shaqadan waxay mulkiilaha ka saartaa app-ka (Logout)
   Future<void> logout() async {
     _owner = null;
     final prefs = await SharedPreferences.getInstance();
@@ -99,6 +96,7 @@ class OwnerAuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Shaqadan waxay si toos ah u soo gelineysaa mulkiilaha haddii xogtiisu hore ugu kaydsanayd taleefanka
   Future<void> tryAutoLogin() async {
     final prefs = await SharedPreferences.getInstance();
     if (!prefs.containsKey('ownerData')) return;
@@ -108,6 +106,7 @@ class OwnerAuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Shaqadan waxay cusboonaysiisaa profile-ka mulkiilaha
   Future<bool> updateProfile({String? name, String? email, String? password, String? phoneNumber, String? address, String? nationalID}) async {
     _isLoading = true;
     notifyListeners();
@@ -128,9 +127,7 @@ class OwnerAuthProvider with ChangeNotifier {
           'Authorization': 'Bearer ${_owner!.token}',
         },
         body: jsonEncode(updateData),
-      );
-
-      print('Owner Profile Update Response: ${response.statusCode}');
+      ).timeout(const Duration(seconds: 45));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -140,11 +137,9 @@ class OwnerAuthProvider with ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        print('Owner Profile Update Failed: ${response.body}');
         return false;
       }
     } catch (e) {
-      print('Owner Profile Update Exception: $e');
       return false;
     } finally {
       _isLoading = false;

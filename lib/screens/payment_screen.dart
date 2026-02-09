@@ -3,18 +3,21 @@ import 'package:provider/provider.dart';
 import '../providers/payment_provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/constants.dart';
+import '../services/receipt_service.dart';
 import 'main_screen.dart';
 
 class PaymentScreen extends StatelessWidget {
   final String bookingId;
   final double amount;
   final String houseAddress;
+  final String ownerName;
 
   const PaymentScreen({
     super.key, 
     required this.bookingId, 
     required this.amount,
     required this.houseAddress,
+    required this.ownerName,
   });
 
   void _processPayment(BuildContext context, String method) async {
@@ -33,18 +36,48 @@ class PaymentScreen extends StatelessWidget {
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
-          title: const Text('Payment Successful'),
-          content: const Text('Your booking has been confirmed!'),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.check_circle_outline_rounded, color: Colors.green, size: 28),
+              SizedBox(width: 12),
+              Text('Success'),
+            ],
+          ),
+          content: const Text('Your payment was successful and your booking is confirmed!'),
           actions: [
-            TextButton(
-              onPressed: () {
-                 Navigator.of(context).pushAndRemoveUntil(
-                   MaterialPageRoute(builder: (context) => const MainScreen()),
-                   (route) => false,
-                 );
-              },
-              child: const Text('Go Home'),
-            )
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    ReceiptService.generateReceipt(
+                      houseAddress: houseAddress,
+                      ownerName: ownerName,
+                      amount: amount,
+                      paymentMethod: method,
+                      bookingId: bookingId,
+                    );
+                  },
+                  icon: const Icon(Icons.download_rounded),
+                  label: const Text('Download Receipt', style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => const MainScreen()),
+                      (route) => false,
+                    );
+                  },
+                  child: const Text('Go Volume Home', style: TextStyle(color: AppColors.textLight)),
+                ),
+              ],
+            ),
           ],
         ),
       );

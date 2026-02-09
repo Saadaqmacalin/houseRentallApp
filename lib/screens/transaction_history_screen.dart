@@ -4,6 +4,7 @@ import '../providers/payment_provider.dart';
 import '../providers/booking_provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/constants.dart';
+import 'auth/login_screen.dart';
 import 'package:intl/intl.dart';
 
 class TransactionHistoryScreen extends StatefulWidget {
@@ -14,21 +15,33 @@ class TransactionHistoryScreen extends StatefulWidget {
 }
 
 class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
-  late Future<List<dynamic>> _paymentsFuture;
+  Future<List<dynamic>>? _paymentsFuture;
 
   @override
   void initState() {
     super.initState();
-    _loadTransactions();
+    // Do not load here, as build will handle it or redirect
   }
 
   void _loadTransactions() {
     final auth = Provider.of<AuthProvider>(context, listen: false);
-    _paymentsFuture = Provider.of<PaymentProvider>(context, listen: false).fetchMyPayments(auth.user!.token);
+    if (auth.isAuthenticated) {
+      _paymentsFuture = Provider.of<PaymentProvider>(context, listen: false).fetchMyPayments(auth.user!.token);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = Provider.of<AuthProvider>(context);
+    
+    if (!auth.isAuthenticated) {
+      return _buildLoginRequiredState();
+    }
+
+    if (_paymentsFuture == null) {
+      _loadTransactions();
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -76,7 +89,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   setState(() {
                     _loadTransactions();
                   });
-                  await _paymentsFuture;
+                  if (_paymentsFuture != null) {
+                    await _paymentsFuture;
+                  }
                 },
                 color: AppColors.primary,
                 child: FutureBuilder<List<dynamic>>(
@@ -438,5 +453,56 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to end lease'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating));
       }
     }
+  }
+
+  Widget _buildLoginRequiredState() {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                shape: BoxShape.circle,
+                boxShadow: [AppShadows.soft],
+              ),
+              child: Icon(Icons.receipt_long_rounded, size: 60, color: AppColors.primary.withOpacity(0.3)),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Login Required',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 48),
+              child: Text(
+                'Please login to see and manage your booking history.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.textLight.withOpacity(0.7), fontSize: 14),
+              ),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: const Text('Go to Login', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

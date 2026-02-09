@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/constants.dart';
+import 'auth/login_screen.dart';
 import 'transaction_history_screen.dart';
 import 'role_selection_screen.dart';
 
@@ -71,7 +72,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final auth = Provider.of<AuthProvider>(context);
     final user = auth.user;
 
-    if (user == null) return const Center(child: Text('Not logged in'));
+    if (user == null) {
+      return _buildLoginRequiredState();
+    }
 
     return SingleChildScrollView(
       child: Column(
@@ -297,6 +300,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textLight),
         onTap: onTap,
+      ),
+    );
+  }
+
+  Widget _buildLoginRequiredState() {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                shape: BoxShape.circle,
+                boxShadow: [AppShadows.soft],
+              ),
+              child: Icon(Icons.person_outline_rounded, size: 60, color: AppColors.primary.withOpacity(0.3)),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Login Required',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 48),
+              child: Text(
+                'Please login to see and manage your profile details.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.textLight.withOpacity(0.7), fontSize: 14),
+              ),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: const Text('Go to Login', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
       ),
     );
   }

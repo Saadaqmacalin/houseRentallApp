@@ -4,6 +4,7 @@ import '../providers/auth_provider.dart';
 import '../providers/house_provider.dart';
 import '../models/house.dart';
 import '../utils/constants.dart';
+import 'auth/login_screen.dart';
 import 'home/home_screen.dart'; // To reuse HouseCard
 
 class FavoritesScreen extends StatefulWidget {
@@ -31,6 +32,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
+    
+    if (!auth.isAuthenticated) {
+      return _buildLoginRequiredState();
+    }
+
     final currentFavorites = auth.user?.favorites ?? [];
 
     // Trigger reload if favorites list changed or not yet loaded
@@ -138,6 +144,54 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           TextButton(
             onPressed: () => setState(() => _loadFavorites(token, favoriteIds)),
             child: const Text('Try Again', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoginRequiredState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              shape: BoxShape.circle,
+              boxShadow: [AppShadows.soft],
+            ),
+            child: Icon(Icons.lock_outline_rounded, size: 60, color: AppColors.primary.withOpacity(0.3)),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Login Required',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 48),
+            child: Text(
+              'Please login to see and manage your favorite properties.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textLight.withOpacity(0.7), fontSize: 14),
+            ),
+          ),
+          const SizedBox(height: 32),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+            child: const Text('Go to Login', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),

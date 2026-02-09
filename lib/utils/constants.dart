@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ApiConstants {
-  // Use 10.0.2.2 for Android Emulator to access localhost
-  static const String baseUrl = 'http://10.0.2.2:5000/api'; 
+  static const String baseUrl = 'https://houserental-backend-9k4k.onrender.com/api'; 
 }
 
 class AppColors {

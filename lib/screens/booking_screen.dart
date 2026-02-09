@@ -56,6 +56,7 @@ class _BookingScreenState extends State<BookingScreen> {
             bookingId: result['id'], 
             amount: widget.house.price,
             houseAddress: widget.house.address,
+            ownerName: widget.house.ownerName,
           ),
         ),
       );

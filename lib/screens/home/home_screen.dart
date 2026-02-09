@@ -5,6 +5,7 @@ import '../../providers/auth_provider.dart';
 import '../../models/house.dart';
 import '../../utils/constants.dart';
 import 'house_details_screen.dart';
+import '../auth/login_screen.dart';
 import '../booking_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -240,10 +241,23 @@ class HouseCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
                   child: Image.network(
-                    house.imageUrl,
-                    height: 220,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        height: 220,
+                        width: double.infinity,
+                        color: AppColors.background,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.primary.withOpacity(0.3),
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        ),
+                      );
+                    },
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         height: 220,
@@ -253,19 +267,19 @@ class HouseCard extends StatelessWidget {
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              AppColors.primary.withOpacity(0.3),
-                              AppColors.accent.withOpacity(0.3),
+                              AppColors.primary.withOpacity(0.1),
+                              AppColors.accent.withOpacity(0.1),
                             ],
                           ),
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.home_work_rounded, size: 60, color: AppColors.primary.withOpacity(0.5)),
+                            Icon(Icons.broken_image_rounded, size: 50, color: AppColors.primary.withOpacity(0.3)),
                             const SizedBox(height: 8),
                             Text(
-                              'Property Image',
-                              style: TextStyle(color: AppColors.textDark.withOpacity(0.5), fontSize: 14),
+                              'Image unavailable',
+                              style: TextStyle(color: AppColors.textDark.withOpacity(0.4), fontSize: 12, fontWeight: FontWeight.w500),
                             ),
                           ],
                         ),
@@ -287,7 +301,15 @@ class HouseCard extends StatelessWidget {
                           boxShadow: [AppShadows.soft],
                         ),
                         child: GestureDetector(
-                          onTap: () => auth.toggleFavorite(house.id),
+                        onTap: () {
+                          if (!auth.isAuthenticated) {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (context) => const LoginScreen()),
+                            );
+                            return;
+                          }
+                          auth.toggleFavorite(house.id);
+                        },
                           child: Icon(
                             isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
                             color: isFavorite ? Colors.red : AppColors.textDark,
@@ -367,6 +389,13 @@ class HouseCard extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () {
+                            final auth = Provider.of<AuthProvider>(context, listen: false);
+                            if (!auth.isAuthenticated) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                              );
+                              return;
+                            }
                             Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (context) => BookingScreen(house: house),

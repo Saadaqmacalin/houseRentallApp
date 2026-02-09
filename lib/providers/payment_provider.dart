@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../utils/constants.dart';
 
+// Fasalkaani wuxuu maamulaa nidaamka lacag bixinta (Payment System)
 class PaymentProvider with ChangeNotifier {
   bool _isLoading = false;
 
   bool get isLoading => _isLoading;
 
+  // Shaqadan waxay fulisaa bixinta lacagta kirada (Process Payment)
   Future<bool> createPayment(String bookingId, double amount, String paymentMethod, String token) async {
     _isLoading = true;
     notifyListeners();
@@ -24,7 +26,7 @@ class PaymentProvider with ChangeNotifier {
           'amount': amount,
           'paymentMethod': paymentMethod,
         }),
-      );
+      ).timeout(const Duration(seconds: 45));
 
       if (response.statusCode == 201) {
         return true;
@@ -32,7 +34,6 @@ class PaymentProvider with ChangeNotifier {
         return false;
       }
     } catch (e) {
-      print(e);
       return false;
     } finally {
       _isLoading = false;
@@ -40,6 +41,7 @@ class PaymentProvider with ChangeNotifier {
     }
   }
 
+  // Shaqadan waxay soo kaxaysaa taariikhda lacag bixinta ee qofka (Fetch Payment History)
   Future<List<dynamic>> fetchMyPayments(String token) async {
     try {
       final response = await http.get(
@@ -47,15 +49,14 @@ class PaymentProvider with ChangeNotifier {
         headers: {
             'Authorization': 'Bearer $token',
         },
-      );
+      ).timeout(const Duration(seconds: 45));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        return data; // Returns list of payment objects
+        return data; // Waxay soo celinaysaa liiska lacag bixinta
       }
       return [];
     } catch (e) {
-      print(e);
       return [];
     }
   }

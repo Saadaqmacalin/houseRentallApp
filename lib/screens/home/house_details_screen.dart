@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/house.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/constants.dart';
+import '../auth/login_screen.dart';
 import '../booking_screen.dart';
 
 class HouseDetailsScreen extends StatelessWidget {
@@ -56,7 +57,15 @@ class HouseDetailsScreen extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.all(8.0),
               child: GestureDetector(
-                onTap: () => auth.toggleFavorite(house.id),
+                onTap: () {
+                  if (!auth.isAuthenticated) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    );
+                    return;
+                  }
+                  auth.toggleFavorite(house.id);
+                },
                 child: Container(
                   width: 40,
                   height: 40,
@@ -83,6 +92,21 @@ class HouseDetailsScreen extends StatelessWidget {
             Image.network(
               house.imageUrl,
               fit: BoxFit.cover,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Container(
+                  color: AppColors.background,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.primary.withOpacity(0.3),
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                    ),
+                  ),
+                );
+              },
               errorBuilder: (context, error, stackTrace) {
                 return Container(
                   decoration: BoxDecoration(
@@ -90,16 +114,26 @@ class HouseDetailsScreen extends StatelessWidget {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        AppColors.primary.withOpacity(0.5),
-                        AppColors.accent.withOpacity(0.5),
+                        AppColors.primary.withOpacity(0.2),
+                        AppColors.accent.withOpacity(0.2),
                       ],
                     ),
                   ),
                   child: Center(
-                    child: Icon(
-                      Icons.home_work_rounded,
-                      size: 100,
-                      color: AppColors.white.withOpacity(0.5),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.broken_image_rounded,
+                          size: 80,
+                          color: AppColors.white.withOpacity(0.3),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Display Image Not Available',
+                          style: TextStyle(color: AppColors.white.withOpacity(0.5), fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -203,12 +237,6 @@ class HouseDetailsScreen extends StatelessWidget {
             style: TextStyle(color: AppColors.textLight, fontSize: 15, height: 1.7),
           ),
           const SizedBox(height: 32),
-          const Text(
-            'Listing Owner',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark),
-          ),
-          const SizedBox(height: 16),
-          _buildOwnerCard(),
           const SizedBox(height: 150),
         ],
       ),
@@ -231,45 +259,6 @@ class HouseDetailsScreen extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOwnerCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.background),
-        boxShadow: [AppShadows.soft],
-      ),
-      child: Row(
-        children: [
-          const CircleAvatar(
-            radius: 25,
-            backgroundColor: AppColors.primaryLight,
-            child: Icon(Icons.person, color: AppColors.primary),
-          ),
-          const SizedBox(width: 16),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Sarah Jenkins', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text('Property Manager', style: TextStyle(color: AppColors.textLight, fontSize: 12)),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.chat_bubble_rounded, color: Colors.white, size: 20),
           ),
         ],
       ),
@@ -310,6 +299,13 @@ class HouseDetailsScreen extends StatelessWidget {
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
+                  final auth = Provider.of<AuthProvider>(context, listen: false);
+                  if (!auth.isAuthenticated) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    );
+                    return;
+                  }
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => BookingScreen(house: house),

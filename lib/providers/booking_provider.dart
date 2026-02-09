@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../utils/constants.dart';
 
+
 class BookingProvider with ChangeNotifier {
   bool _isLoading = false;
 
   bool get isLoading => _isLoading;
 
+  
   Future<Map<String, dynamic>> createBooking(String houseId, DateTime startDate, String token) async {
     _isLoading = true;
     notifyListeners();
@@ -23,25 +25,24 @@ class BookingProvider with ChangeNotifier {
           'houseId': houseId,
           'startDate': startDate.toIso8601String(),
         }),
-      );
+      ).timeout(const Duration(seconds: 45));
 
-      print('Booking API Status: ${response.statusCode}');
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 201) {
         return {'success': true, 'id': data['_id']};
       } else {
-        print('Booking API Failed: ${response.body}');
         return {'success': false, 'message': data['message'] ?? 'Booking failed'};
       }
     } catch (e) {
-      print('Booking Exception: $e');
       return {'success': false, 'message': 'Connection error'};
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
+
+  
   Future<bool> endBooking(String bookingId, String token) async {
     _isLoading = true;
     notifyListeners();
@@ -53,14 +54,13 @@ class BookingProvider with ChangeNotifier {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-      );
+      ).timeout(const Duration(seconds: 45));
 
       if (response.statusCode == 200) {
         _isLoading = false;
         notifyListeners();
         return true;
       } else {
-        final errorData = json.decode(response.body);
         _isLoading = false;
         notifyListeners();
         return false;

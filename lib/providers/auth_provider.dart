@@ -5,14 +5,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../utils/constants.dart';
 
-class AuthProvider with ChangeNotifier {
-  User? _user;
-  bool _isLoading = false;
+// inla xaqiijyo dadka isticmaalaya app-ka (Authentication)
+// Markasta oo state is beddelo wuxuu waxaa lawacaa notifyListeners() si UI-ga loo updategareeyo
+class AuthProvider with ChangeNotifier { 
+  User? _user; // Xogta usrka hada ku jiro (logged in user)
+  bool _isLoading = false; 
 
   User? get user => _user;
   bool get isLoading => _isLoading;
-  bool get isAuthenticated => _user != null;
+  bool get isAuthenticated => _user != null; //  hubin in qofku soo galay?
 
+  
   Future<bool> login(String email, String password) async {
     _isLoading = true;
     notifyListeners();
@@ -22,11 +25,12 @@ class AuthProvider with ChangeNotifier {
         Uri.parse('${ApiConstants.baseUrl}/auth/customer/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'password': password}),
-      );
+      ).timeout(const Duration(seconds: 45));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         _user = User.fromJson(data);
+        // in userka xogtiisa lagu keydiyo local storage (local storage)
         final prefs = await SharedPreferences.getInstance();
         prefs.setString('userData', jsonEncode(data));
         notifyListeners();
@@ -35,7 +39,6 @@ class AuthProvider with ChangeNotifier {
         return false;
       }
     } catch (e) {
-      print(e);
       return false;
     } finally {
       _isLoading = false;
@@ -43,6 +46,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+ 
   Future<bool> register(String name, String email, String password) async {
     _isLoading = true;
     notifyListeners();
@@ -56,7 +60,7 @@ class AuthProvider with ChangeNotifier {
           'email': email,
           'password': password,
         }),
-      );
+      ).timeout(const Duration(seconds: 45));
 
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
@@ -77,13 +81,15 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  
   Future<void> logout() async {
     _user = null;
     final prefs = await SharedPreferences.getInstance();
-    prefs.remove('userData');
+    prefs.remove('userData'); // in latirtiro local storage data
     notifyListeners();
   }
 
+  
   Future<void> tryAutoLogin() async {
     final prefs = await SharedPreferences.getInstance();
     if (!prefs.containsKey('userData')) return;
@@ -93,10 +99,11 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
+
   Future<void> toggleFavorite(String houseId) async {
     final oldFavorites = List<String>.from(_user!.favorites);
     try {
-      // 1. Optimistic Update UI
+      
       if (_user!.favorites.contains(houseId)) {
         _user!.favorites.remove(houseId);
       } else {
@@ -104,50 +111,40 @@ class AuthProvider with ChangeNotifier {
       }
       notifyListeners();
 
-      // 2. Call API
+      // 2. in xogta databaseka  la update gareeyo 
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}/customers/favorites/$houseId'),
         headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ${_user!.token}',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${_user!.token}',
         },
-      );
-
-      print('Toggle Favorite API Status: ${response.statusCode}');
+      ).timeout(const Duration(seconds: 45));
 
       if (response.statusCode >= 400) {
-        // Rollback on failure
+        
         _user!.favorites = oldFavorites;
         notifyListeners();
-        print('Toggle Favorite FAILED. Status: ${response.statusCode}');
-        print('Error Body: ${response.body}');
       } else {
-        // Success: Update state with data from server
+        
         final List<dynamic> serverFavorites = jsonDecode(response.body);
         final newFavorites = serverFavorites.map((e) => e.toString()).toList();
-        
-        // Critical: Update the user object with the new list reference
         _user!.favorites = newFavorites;
         
-        // Persist to local storage
+        // in xogta lagu keydiyo local storage
         final prefs = await SharedPreferences.getInstance();
         if (prefs.containsKey('userData')) {
           final Map<String, dynamic> userData = jsonDecode(prefs.getString('userData')!);
           userData['favorites'] = newFavorites;
           prefs.setString('userData', jsonEncode(userData));
         }
-        
-        // Final notification to ensure UI is in sync
         notifyListeners();
-        print('Favorite sync successful. Final count: ${newFavorites.length}');
       }
     } catch (e) {
-      // Rollback on catch
       _user!.favorites = oldFavorites;
       notifyListeners();
-      print('Toggle Favorite Exception: $e');
     }
   }
+  
   
   Future<bool> updateProfile({String? name, String? email, String? password}) async {
     _isLoading = true;
@@ -166,15 +163,14 @@ class AuthProvider with ChangeNotifier {
           'Authorization': 'Bearer ${_user!.token}',
         },
         body: jsonEncode(updateData),
-      );
+      ).timeout(const Duration(seconds: 45));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        // Important: Server might not return token on profile update, so keep current token
         final String currentToken = _user!.token;
         _user = User.fromJson(data);
         
-        // Ensure token is preserved if it wasn't in the response
+        
         if (_user!.token.isEmpty) {
           _user = User(
             id: _user!.id,
@@ -187,22 +183,19 @@ class AuthProvider with ChangeNotifier {
 
         final prefs = await SharedPreferences.getInstance();
         final Map<String, dynamic> fullData = _user!.toJson();
-        fullData['token'] = _user!.token; // Ensure token is persisted
+        fullData['token'] = _user!.token;
         prefs.setString('userData', jsonEncode(fullData));
         
         notifyListeners();
         return true;
       } else {
-        print('Update profile failed with status: ${response.statusCode}');
         return false;
       }
     } catch (e) {
-      print('Update profile exception: $e');
       return false;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
-
 }

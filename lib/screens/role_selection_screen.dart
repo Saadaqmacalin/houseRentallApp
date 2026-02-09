@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'auth_wrapper.dart';
+import 'main_screen.dart';
 import 'owner/auth/owner_login_screen.dart';
 import '../utils/constants.dart';
 
@@ -69,7 +70,7 @@ class RoleSelectionScreen extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const AuthWrapper()),
+                          MaterialPageRoute(builder: (context) => const MainScreen()),
                         );
                       },
                     ),
